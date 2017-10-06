@@ -13,16 +13,23 @@ import Crashlytics
 import Keys
 import Amplitude_iOS
 import Alamofire
+import StoreKit
 
 //This will eventually replace the old ObjC AppDelegate once that code is ported to swift.
 //Reason for adding this class now is mostly, to configure PopupDialogs dim color.
-class HabiticaAppDelegate: NSObject {
+class HabiticaAppDelegate: NSObject, SKPaymentTransactionObserver {
     
     func setupPopups() {
         let appearance = PopupDialogOverlayView.appearance()
         appearance.color = UIColor.purple50()
         appearance.opacity = 0.6
         appearance.blurEnabled = false
+        
+        //SKPaymentQueue.default().add(self)
+    }
+    
+    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+        print(transactions)
     }
     
     func setupLogging() {

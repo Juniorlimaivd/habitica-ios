@@ -11,6 +11,7 @@ import SeedsSDK
 import SwiftyStoreKit
 import StoreKit
 import Keys
+import Crashlytics
 
 class GemViewController: UICollectionViewController, SeedsInAppMessageDelegate {
     
@@ -70,17 +71,15 @@ class GemViewController: UICollectionViewController, SeedsInAppMessageDelegate {
                         if product.transaction.transactionState == .purchased || product.transaction.transactionState == .restored {
                             if product.needsFinishTransaction {
                                 if self.isInAppPurchase(product.productId) {
-                                    if self.isValidPurchase(product.productId, receipt: receipt) {
-                                        self.activatePurchase(product.productId, receipt: receipt) { status in
-                                            if status {
-                                                SwiftyStoreKit.finishTransaction(product.transaction)
-                                            }
+                                    self.activatePurchase(product.productId, receipt: receipt) { status in
+                                        if status {
+                                            SwiftyStoreKit.finishTransaction(product.transaction)
                                         }
-                                    } else {
-                                        SwiftyStoreKit.finishTransaction(product.transaction)
                                     }
                                 }
                             }
+                        } else if product.transaction.transactionState == .failed && product.needsFinishTransaction {
+                            SwiftyStoreKit.finishTransaction(product.transaction)
                         }
                     }
                 default:
@@ -103,30 +102,6 @@ class GemViewController: UICollectionViewController, SeedsInAppMessageDelegate {
                 return firstIndex < secondIndex
             })
             self.collectionView?.reloadData()
-        }
-    }
-    
-    @IBAction func checkForExistingSubscription(_ sender: Any) {
-        SwiftyStoreKit.verifyReceipt(using: self.appleValidator, password: self.itunesSharedSecret) { result in
-            switch result {
-            case .success(let verifiedReceipt):
-                guard let purchases = verifiedReceipt["latest_receipt_info"] as? [ReceiptInfo] else {
-                    return
-                }
-                for purchase in purchases {
-                    if let identifier = purchase["product_id"] as? String {
-                        if self.isValidPurchase(identifier, receipt: verifiedReceipt) {
-                            self.activatePurchase(identifier, receipt: verifiedReceipt) {status in
-                                if status {
-                                    return
-                                }
-                            }
-                        }
-                    }
-                }
-            case .error(let error):
-                print("Receipt verification failed: \(error)")
-            }
         }
     }
     
@@ -229,7 +204,7 @@ class GemViewController: UICollectionViewController, SeedsInAppMessageDelegate {
                 self.verifyPurchase(product)
                 print("Purchase Success: \(product.productId)")
             case .error(let error):
-                print("Purchase Failed: \(error)")
+                Crashlytics.sharedInstance().recordError(error)
             }
         }
     }
@@ -238,18 +213,15 @@ class GemViewController: UICollectionViewController, SeedsInAppMessageDelegate {
         SwiftyStoreKit.verifyReceipt(using: appleValidator, password: self.itunesSharedSecret) { result in
             switch result {
             case .success(let receipt):
-                // Verify the purchase of a Subscription
-                if self.isValidPurchase(product.productId, receipt: receipt) {
-                    self.activatePurchase(product.productId, receipt: receipt) { status in
-                        if status {
-                            if product.needsFinishTransaction {
-                                SwiftyStoreKit.finishTransaction(product.transaction)
-                            }
+                self.activatePurchase(product.productId, receipt: receipt) { status in
+                    if status {
+                        if product.needsFinishTransaction {
+                            SwiftyStoreKit.finishTransaction(product.transaction)
                         }
                     }
                 }
             case .error(let error):
-                print("Receipt verification failed: \(error)")
+                Crashlytics.sharedInstance().recordError(error)
             }
         }
     }
@@ -262,23 +234,14 @@ class GemViewController: UICollectionViewController, SeedsInAppMessageDelegate {
             }, onError: {
                 completion(false)
             })
+        } else {
+            let userInfo = [NSLocalizedDescriptionKey: "No latest_receipt"]
+            let error = NSError(domain: "PurchaseErrorDomain", code: 404, userInfo: userInfo)
+            Crashlytics.sharedInstance().recordError(error)
         }
     }
     
     func isInAppPurchase(_ identifier: String) -> Bool {
         return  self.identifiers.contains(identifier)
-    }
-    
-    func isValidPurchase(_ identifier: String, receipt: ReceiptInfo) -> Bool {
-        if !isInAppPurchase(identifier) {
-            return false
-        }
-        let purchaseResult = SwiftyStoreKit.verifyPurchase(productId: identifier, inReceipt: receipt)
-        switch purchaseResult {
-        case .purchased:
-            return true
-        case .notPurchased:
-            return false
-        }
     }
 }
