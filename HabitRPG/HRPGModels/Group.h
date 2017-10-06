@@ -35,6 +35,7 @@
 @property(nonatomic, retain) NSNumber *isMember;
 @property(nonatomic, retain) NSNumber *memberCount;
 @property(nonatomic, retain) NSNumber *balance;
+@property(nonatomic, retain) NSString *summary;
 @end
 
 @interface Group (CoreDataGeneratedAccessors)

@@ -1400,7 +1400,8 @@ NSString *currentUser;
         @"privacy" : @"privacy",
         @"type" : @"type",
         @"memberCount" : @"memberCount",
-        @"balance" : @"balance"
+        @"balance" : @"balance",
+        @"summary": @"summary",
     }];
     entityMapping.identificationAttributes = @[ @"id" ];
     entityMapping.assignsDefaultValueForMissingAttributes = YES;

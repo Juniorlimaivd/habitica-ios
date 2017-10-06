@@ -34,6 +34,9 @@
     self.searchBar.placeholder = NSLocalizedString(@"Search", nil);
     self.searchBar.delegate = self;
     self.tableView.tableHeaderView = self.searchBar;
+    
+    self.tableView.rowHeight = UITableViewAutomaticDimension;
+    self.tableView.estimatedRowHeight = 60;
 
     [self refresh];
 }
@@ -78,49 +81,6 @@
         onError:^() {
             [weakSelf.refreshControl endRefreshing];
         }];
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    Group *guild = [self.dataSource itemAtIndexPath:indexPath];
-
-    CGFloat width = self.viewWidth - 24;
-    CGFloat titleWidth =
-        width -
-        [[NSString stringWithFormat:NSLocalizedString(@"%@ Members", nil), guild.memberCount]
-            boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT)
-                         options:NSStringDrawingUsesLineFragmentOrigin
-                      attributes:@{
-                          NSFontAttributeName :
-                              [UIFont preferredFontForTextStyle:UIFontTextStyleCaption1]
-                      }
-                         context:nil]
-            .size.width;
-    CGFloat height =
-        20 +
-        [guild.name boundingRectWithSize:CGSizeMake(titleWidth, MAXFLOAT)
-                                 options:NSStringDrawingUsesLineFragmentOrigin
-                              attributes:@{
-                                  NSFontAttributeName :
-                                      [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline]
-                              }
-                                 context:nil]
-            .size.height;
-    CGFloat descriptionHeight = [guild.hdescription boundingRectWithSize:CGSizeMake(titleWidth, MAXFLOAT)
-                                              options:NSStringDrawingUsesLineFragmentOrigin
-                                           attributes:@{
-                                               NSFontAttributeName : [UIFont
-                                                   preferredFontForTextStyle:UIFontTextStyleBody]
-                                           }
-                                              context:nil]
-                 .size.height;
-    if (descriptionHeight <
-        [UIFont preferredFontForTextStyle:UIFontTextStyleCaption2].lineHeight * 6) {
-        height = height + descriptionHeight;
-    } else {
-        height =
-        height + [UIFont preferredFontForTextStyle:UIFontTextStyleCaption2].lineHeight * 6;
-    }
-    return height;
 }
 
 - (void)configureCell:(HRPGPublicGuildTableViewCell *)cell withGuild:(Group *)guild {

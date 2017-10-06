@@ -58,6 +58,11 @@
                                                   title:NSLocalizedString(@"Name", nil)];
     row.required = YES;
     [section addFormRow:row];
+    
+    row = [XLFormRowDescriptor formRowDescriptorWithTag:@"summary"
+                                                rowType:XLFormRowDescriptorTypeTextView
+                                                  title:NSLocalizedString(@"Summary", nil)];
+    [section addFormRow:row];
 
     row = [XLFormRowDescriptor formRowDescriptorWithTag:@"hdescription"
                                                 rowType:XLFormRowDescriptorTypeTextView
@@ -70,6 +75,7 @@
     self.navigationItem.title = NSLocalizedString(@"Edit Party", nil);
     [self.form formRowWithTag:@"name"].value = self.group.name;
     [self.form formRowWithTag:@"hdescription"].value = self.group.hdescription;
+    [self.form formRowWithTag:@"summary"].value = self.group.summary;
 
     [self.tableView reloadData];
 }

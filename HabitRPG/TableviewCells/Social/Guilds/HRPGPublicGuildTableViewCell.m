@@ -21,7 +21,7 @@
 - (void)configureForGuild:(Group *)guild {
     self.titleLabel.text = [guild.name stringByReplacingEmojiCheatCodesWithUnicode];
     self.titleLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
-    self.descriptionLabel.text = guild.hdescription;
+    self.descriptionLabel.text = [guild.summary stringByReplacingEmojiCheatCodesWithUnicode];
     self.descriptionLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody];
     self.memberCountLabel.text =
         [NSString stringWithFormat:NSLocalizedString(@"%@ Members", nil), guild.memberCount];
