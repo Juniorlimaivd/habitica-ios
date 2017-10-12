@@ -227,18 +227,18 @@ class GemViewController: UICollectionViewController, SeedsInAppMessageDelegate {
     }
     
     func activatePurchase(_ identifier: String, receipt: ReceiptInfo, completion: @escaping (Bool) -> Void) {
-        if let lastReceipt = receipt["latest_receipt"] as? String {
-            HRPGManager.shared().purchaseGems(["transaction": ["receipt": lastReceipt]], onSuccess: {
-                completion(true)
-                self.collectionView?.reloadData()
-            }, onError: {
-                completion(false)
-            })
-        } else {
-            let userInfo = [NSLocalizedDescriptionKey: "No latest_receipt"]
-            let error = NSError(domain: "PurchaseErrorDomain", code: 404, userInfo: userInfo)
-            Crashlytics.sharedInstance().recordError(error)
+        guard let receiptURL = Bundle.main.appStoreReceiptURL else {
+            return
         }
+        guard let receiptData = NSData(contentsOf: receiptURL) else {
+            return
+        }
+        HRPGManager.shared().purchaseGems(["transaction": ["receipt": receiptData.base64EncodedString(options: [])]], onSuccess: {
+            completion(true)
+            self.collectionView?.reloadData()
+        }, onError: {
+            completion(false)
+        })
     }
     
     func isInAppPurchase(_ identifier: String) -> Bool {
