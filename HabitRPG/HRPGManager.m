@@ -2597,7 +2597,11 @@ NSString *currentUser;
             return;
         }
         failure:^(RKObjectRequestOperation *operation, NSError *error) {
-            [self handleNetworkError:operation withError:error];
+            if (operation.HTTPRequestOperation.response.statusCode == 401) {
+                [self showLogoutAlert];
+            } else {
+                [self handleNetworkError:operation withError:error];
+            }
             if (errorBlock) {
                 errorBlock();
             }
@@ -5407,6 +5411,41 @@ NSString *currentUser;
     } else {
         [self displayNetworkError];
     }
+}
+
+- (void)showLogoutAlert {
+    UIAlertController *alertController = [UIAlertController alertWithTitle:NSLocalizedString(@"Authentication Error", @"") message:NSLocalizedString(@"Your authentication credentials might have changed due to a password change. Please log in again.", @"") handler:^(UIAlertAction * _Nonnull action) {
+        void (^logoutBlock)() = ^() {
+            [[AuthenticationManager shared] clearAuthenticationForAllUsers];
+            [defaults setObject:@"" forKey:@"partyID"];
+            [defaults setObject:@"" forKey:@"habitFilter"];
+            [defaults setObject:@"" forKey:@"dailyFilter"];
+            [defaults setObject:@"" forKey:@"todoFilter"];
+            [[HRPGManager sharedManager] clearLoginCredentials];
+            
+            [[HRPGManager sharedManager]
+             resetSavedDatabase:NO
+             onComplete:^() {}];
+            
+            UIStoryboard *storyboard =
+            [UIStoryboard storyboardWithName:@"Intro" bundle:nil];
+            UINavigationController *navigationController =
+            [storyboard instantiateViewControllerWithIdentifier:
+             @"LoginTableViewController"];
+            [[UIApplication topViewControllerWithBase:[UIApplication sharedApplication].keyWindow.rootViewController] presentViewController:navigationController animated:YES completion:nil];
+        };
+        
+        if ([defaults stringForKey:@"PushNotificationDeviceToken"]) {
+            [[HRPGManager sharedManager] removePushDevice:^{
+                logoutBlock();
+            } onError:^{
+                logoutBlock();
+            }];
+        } else {
+            logoutBlock();
+        }
+    }];
+    [[UIApplication topViewControllerWithBase:[UIApplication sharedApplication].keyWindow.rootViewController] presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)insertSubscriberShopItems {

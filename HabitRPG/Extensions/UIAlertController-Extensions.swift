@@ -13,7 +13,7 @@ public extension UIAlertController {
             message: message,
             preferredStyle: .alert
         )
-        alertController.addAction(UIAlertAction.okAction())
+        alertController.addAction(UIAlertAction.okAction(handler: handler))
 
         return alertController
     }
