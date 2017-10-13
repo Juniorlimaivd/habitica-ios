@@ -24,6 +24,7 @@ class CheckedTableViewCell: TaskTableViewCell {
     weak var task: Task?
     var isExpanded = false
     var checkboxTouched: (() -> Void)?
+    var expandChecklistAction: (() -> Void)?
     var checklistItemTouched: ((_ item: ChecklistItem) -> Void)?
 
     override func configure(task: Task) {
@@ -49,6 +50,11 @@ class CheckedTableViewCell: TaskTableViewCell {
         self.subtitleLabel.backgroundColor = self.backgroundColor
 
         self.checklistIndicator.layoutIfNeeded()
+        
+        if let recognizers = self.checklistIndicator.gestureRecognizers, recognizers.count > 0 {
+            self.checklistIndicator.removeGestureRecognizer(recognizers[0])
+        }
+        self.checklistIndicator.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(expandChecklist)))
     }
     
     func handleChecklist(_ task: Task) {
@@ -115,7 +121,12 @@ class CheckedTableViewCell: TaskTableViewCell {
     
     override func applyAccessibility(_ task: Task) {
         super.applyAccessibility(task)
-        self.accessibilityCustomActions = [UIAccessibilityCustomAction(name: NSLocalizedString("Complete Task", comment: ""), target: self, selector: #selector(checkTask))]
+        var expandLabel = NSLocalizedString("Expand Checklist", comment: "")
+        if isExpanded {
+            expandLabel = NSLocalizedString("Collapse Checklist", comment: "")
+        }
+        self.accessibilityCustomActions = [UIAccessibilityCustomAction(name: NSLocalizedString("Complete Task", comment: ""), target: self, selector: #selector(checkTask)),
+        UIAccessibilityCustomAction(name: expandLabel, target: self, selector: #selector(expandChecklist))]
         var stateText = ""
         if task.type == "daily" {
             if task.isDue?.boolValue ?? false {
@@ -134,6 +145,12 @@ class CheckedTableViewCell: TaskTableViewCell {
     
     func checkTask() {
         if let action = checkboxTouched {
+            action()
+        }
+    }
+    
+    func expandChecklist() {
+        if let action = expandChecklistAction {
             action()
         }
     }

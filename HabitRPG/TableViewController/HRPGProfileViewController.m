@@ -187,6 +187,10 @@ NSString *currentUserID;
     } else if (section == 3) {
         iconView.image = [UIImage imageNamed:@"icon_help"];
     }
+    
+    view.shouldGroupAccessibilityChildren = YES;
+    view.accessibilityValue = label.text;
+    
     return view;
 }
 
@@ -298,7 +302,6 @@ NSString *currentUserID;
         title = NSLocalizedString(@"Tavern", nil);
     } else if (indexPath.section == 1 && indexPath.item == 2) {
         title = NSLocalizedString(@"Party", nil);
-        accessibilityLabel = title;
         User *user = self.user;
         if (user) {
             if ([user.party.unreadMessages boolValue]) {
@@ -347,9 +350,7 @@ NSString *currentUserID;
 
     UITableViewCell *cell =
         [tableView dequeueReusableCellWithIdentifier:cellName forIndexPath:indexPath];
-    if (accessibilityLabel) {
-        cell.accessibilityLabel = accessibilityLabel;
-    }
+    cell.accessibilityLabel = title;
     UILabel *label = [cell viewWithTag:1];
     label.text = title;
     UIImageView *indicatorView = [cell viewWithTag:2];

@@ -161,10 +161,12 @@ NSInteger rowOffset = 16;
             self.magicLabel.maxValue = self.user.maxMagic;
         }
         self.magicLabel.isActive = YES;
-    } else {
+    } else if ([self.user.level integerValue] < 10) {
         self.magicLabel.isActive = NO;
         self.magicLabel.value = @0;
         self.magicLabel.labelView.text = NSLocalizedString(@"Unlocks at level 10", nil);
+    } else {
+        self.magicLabel.hidden = YES;
     }
 
     self.usernameLabel.text = self.user.username;
