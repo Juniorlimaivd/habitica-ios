@@ -16,7 +16,7 @@
 @interface HRPGAccountDetailViewController ()
 
 @property User *user;
-
+@property BOOL showAPIToken;
 @end
 
 @implementation HRPGAccountDetailViewController
@@ -113,7 +113,11 @@
             cell.detailTextLabel.text = self.user.id;
         } else if (indexPath.item == 1) {
             cell.textLabel.text = NSLocalizedString(@"API Key", nil);
-            cell.detailTextLabel.text = authManager.currentUserKey;
+            if (self.showAPIToken) {
+                cell.detailTextLabel.text = authManager.currentUserKey;
+            } else {
+                cell.detailTextLabel.text = NSLocalizedString(@"Tap to show", nil);
+            }
         }
     } else {
         cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
@@ -123,6 +127,13 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.section == 2 && indexPath.item == 1) {
+        if (!self.showAPIToken) {
+            self.showAPIToken = YES;
+            [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            return;
+        }
+    }
     if (indexPath.section > 0) {
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
         HRPGCopyTableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
